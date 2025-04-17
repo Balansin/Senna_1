@@ -1,4 +1,4 @@
-Ayrton Senna was the greatest brazillian racer. Started kart racing in 1973 to F-1 as the top racer of the world in 1990. Senna started small to great accomplishments, and that's what this project is about: great accomplishment throught purpose, experimantation and praxis.
+Ayrton Senna was the greatest brazillian racer. Started kart racing in 1973 to become F-1 world champion in 1990. Senna started small to great accomplishments, and that's what this project is about: great accomplishment throught purpose, experimantation and praxis.
 
 ## Prerequisites
 
