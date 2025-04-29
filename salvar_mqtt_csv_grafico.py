@@ -37,7 +37,7 @@ def on_message(client, userdata, msg):
 # Configura e conecta o cliente MQTT
 client = mqtt.Client(client_id="logger_csv", protocol=mqtt.MQTTv311)
 client.on_message = on_message
-client.connect("192.168.100.45", 1883)
+client.connect("192.168.193.115", 1883)
 client.subscribe("esp32/adxl355")
 
 print("Conectado ao broker. Aguardando mensagens...")

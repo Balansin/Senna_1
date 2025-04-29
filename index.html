@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Senna 1 - Advanced Accelerometer Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            font-size: 2.5rem;
+            color: #007BFF;
+        }
+        .chart-container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px; /* Space between charts */
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="header">
+            <h1>Senna 1 - Advanced Accelerometer Dashboard</h1>
+            <p class="text-gray-600">Monitor and analyze real-time accelerometer data with ease.</p>
+        </div>
+        <div>
+            <div class="chart-container">
+                <canvas id="xChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="yChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="zChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let lastTimestamp = 0; // Track the last timestamp for incremental updates
+        let allData = []; // Store all data points in memory
+
+        async function loadCSV() {
+            try {
+                const response = await fetch('http://localhost:8000/Log/dados_mqtt.csv');
+                if (!response.ok) throw new Error('Failed to fetch CSV');
+                const text = await response.text();
+                const lines = text.trim().split('\n').slice(1); // Skip header
+
+                // Parse new data points
+                const newData = lines.map(line => {
+                    const [time, x, y, z] = line.split(',').map(parseFloat);
+                    return { time, x, y, z };
+                }).filter(d => d.time > lastTimestamp && !isNaN(d.time)); // Filter valid new data
+
+                // Update the last timestamp
+                if (newData.length > 0) {
+                    lastTimestamp = newData[newData.length - 1].time;
+                }
+
+                // Append new data to the existing dataset
+                allData.push(...newData);
+
+                // Keep only the most recent 100 points
+                if (allData.length > 100) {
+                    allData = allData.slice(-100);
+                }
+
+                return allData;
+            } catch (error) {
+                console.error('Error loading CSV:', error);
+                return allData; // Return existing data if fetch fails
+            }
+        }
+
+        function createChart(canvasId, label, dataKey, color) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            return new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: label,
+                        data: [],
+                        borderColor: color,
+                        fill: false,
+                        tension: 0.1,
+                        pointRadius: 0 // Remove points for smoother lines
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: { title: { display: true, text: 'Time (s)' } },
+                        y: {
+                            title: { display: true, text: 'Acceleration (g)' },
+                            min: -2.0,
+                            max: 2.0
+                        }
+                    },
+                    plugins: { legend: { display: true } },
+                    animation: {
+                        duration: 200 // Smooth transitions for updates
+                    }
+                }
+            });
+        }
+
+        async function updateCharts() {
+            const data = await loadCSV();
+            if (data.length === 0) return;
+
+            const charts = [
+                { id: 'xChart', key: 'x', chart: Chart.getChart('xChart') },
+                { id: 'yChart', key: 'y', chart: Chart.getChart('yChart') },
+                { id: 'zChart', key: 'z', chart: Chart.getChart('zChart') }
+            ];
+
+            charts.forEach(({ chart, key }) => {
+                if (chart) {
+                    chart.data.labels = data.map(d => d.time.toFixed(1));
+                    chart.data.datasets[0].data = data.map(d => d[key]);
+                    chart.update();
+                }
+            });
+        }
+
+        // Initialize charts
+        const xChart = createChart('xChart', 'X Axis', 'x', 'rgb(255, 0, 0)');
+        const yChart = createChart('yChart', 'Y Axis', 'y', 'rgb(0, 200, 0)');
+        const zChart = createChart('zChart', 'Z Axis', 'z', 'rgb(0, 0, 255)');
+
+        // Initial load
+        updateCharts();
+
+        // Update every 1 second for real-time effect
+        setInterval(updateCharts, 1000);
+    </script>
+</body>
+</html>
