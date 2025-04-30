@@ -124,7 +124,7 @@ void loop() {
   client.loop();
 
   long now = millis();
-  if (now - lastMsg > 50) {  // A cada 5 segundos
+  if (now - lastMsg > 1) {  // A cada 5 segundos
     lastMsg = now;
 
     // Lê acelerações
