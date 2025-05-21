@@ -4,9 +4,9 @@
 #include <SPI.h>
 
 // ====== CONFIGURAÇÃO DE REDE E MQTT ======
-const char* ssid = "Ronaldo";
-const char* password = "balansin";
-const char* mqtt_server = "192.168.193.115";
+const char* ssid = "XXX";
+const char* password = "XXX";
+const char* mqtt_server = "XXX";
 const char* mqtt_topic = "esp32/adxl355";
 
 // ====== REGISTRO DO ESP32 ======
